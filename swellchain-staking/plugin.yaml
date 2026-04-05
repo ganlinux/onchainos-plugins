@@ -1,0 +1,33 @@
+schema_version: 1
+name: swellchain-staking
+version: "0.1.0"
+description: "Swell Network liquid staking and restaking on Ethereum L1: swETH, rswETH, and SimpleStakingERC20 Earn pool"
+author:
+  name: "ganlinux"
+  github: "ganlinux"
+category: defi-protocol
+tags:
+  - staking
+  - restaking
+  - liquid-staking
+  - ethereum
+  - swellchain
+  - sweth
+  - rsweth
+license: MIT
+
+components:
+  skill:
+    dir: skills/swellchain-staking
+
+build:
+  lang: rust
+  binary_name: swellchain-staking
+  source_repo: ganlinux/onchainos-plugins
+  source_commit: "0000000000000000000000000000000000000000"
+  source_dir: swellchain-staking
+
+api_calls:
+  - "https://rpc.mevblocker.io"
+  - "https://mainnet.gateway.tenderly.co"
+  - "https://ethereum-rpc.publicnode.com"
