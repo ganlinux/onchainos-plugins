@@ -24,7 +24,7 @@ build:
   lang: rust
   binary_name: swellchain-staking
   source_repo: ganlinux/onchainos-plugins
-  source_commit: "0000000000000000000000000000000000000000"
+  source_commit: "d31dd15b3468f7c9ff2f6c085ff2f275865e2702"
   source_dir: swellchain-staking
 
 api_calls:
