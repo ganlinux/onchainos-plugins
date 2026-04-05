@@ -1,0 +1,38 @@
+schema_version: 1
+name: gtbtc
+version: "0.1.0"
+description: "Gate Wrapped BTC (GTBTC) ERC-20/SPL token — query balance, price, APR, transfer and approve on Ethereum, BSC, Base, and Solana"
+license: MIT
+
+author:
+  name: ganlinux
+  github: ganlinux
+
+category: defi-protocol
+tags:
+  - btc
+  - wrapped-btc
+  - yield-bearing
+  - erc20
+  - gate
+
+components:
+  skill:
+    dir: skills/gtbtc
+
+api_calls:
+  - https://api.gateio.ws/api/v4
+  - https://rpc.mevblocker.io
+  - https://bsc-rpc.publicnode.com
+  - https://base-rpc.publicnode.com
+  - https://api.mainnet-beta.solana.com
+  - https://www.gate.com/staking/BTC
+
+build:
+  lang: rust
+  binary_name: gtbtc
+  source_repo: ganlinux/onchainos-plugins
+  source_commit: "0000000000000000000000000000000000000000"
+  source_dir: gtbtc
+  script: |
+    cargo build --release
