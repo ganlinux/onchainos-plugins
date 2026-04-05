@@ -1,0 +1,33 @@
+schema_version: 1
+name: solayer
+version: "0.1.0"
+description: "Solana 上的硬件加速原生 Restaking 协议，质押 SOL 获得 sSOL 流动性再质押代币"
+author:
+  name: "skylavis-sky"
+  github: "skylavis-sky"
+category: defi-protocol
+tags:
+  - restaking
+  - liquid-staking
+  - ssol
+  - solana
+license: MIT
+
+link: https://app.solayer.org
+
+components:
+  skill:
+    dir: skills/solayer
+
+build:
+  lang: rust
+  binary_name: solayer
+  source_repo: skylavis-sky/onchainos-plugins
+  source_commit: "0000000000000000000000000000000000000000"
+  source_dir: solayer
+
+api_calls:
+  - "https://app.solayer.org"
+  - "https://mainnet-rpc.solayer.org"
+  - "https://api.mainnet-beta.solana.com"
+  - "https://solscan.io"
