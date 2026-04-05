@@ -32,7 +32,7 @@ build:
   lang: rust
   binary_name: gtbtc
   source_repo: ganlinux/onchainos-plugins
-  source_commit: "0000000000000000000000000000000000000000"
+  source_commit: "9c2f81831492b53648d9d5c090c4a8546161fe9c"
   source_dir: gtbtc
   script: |
     cargo build --release
