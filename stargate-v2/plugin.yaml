@@ -1,0 +1,28 @@
+schema_version: 1
+name: stargate-v2
+version: "0.1.0"
+description: "Cross-chain bridge using Stargate V2 / LayerZero V2"
+author:
+  name: "skylavis-sky"
+  github: "skylavis-sky"
+category: defi-protocol
+tags:
+  - bridge
+  - cross-chain
+  - layerzero
+license: MIT
+
+components:
+  skill:
+    dir: skills/stargate-v2
+
+build:
+  lang: rust
+  binary_name: stargate-v2
+  source_repo: skylavis-sky/onchainos-plugins
+  source_commit: "0000000000000000000000000000000000000000"
+  source_dir: stargate-v2
+
+api_calls:
+  - "https://scan.layerzero-api.com"
+  - "https://mainnet.infura.io"
