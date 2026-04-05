@@ -1,0 +1,36 @@
+schema_version: 1
+name: lista-cdp
+version: "0.1.0"
+description: "Lista DAO CDP on BSC — stake BNB for slisBNB, deposit collateral, borrow and repay lisUSD stablecoin"
+license: MIT
+
+author:
+  name: ganlinux
+  github: ganlinux
+
+category: defi-protocol
+tags:
+  - cdp
+  - stablecoin
+  - liquid-staking
+  - borrow
+  - lisusd
+  - slisbnb
+  - bnb
+  - bsc
+
+components:
+  skill:
+    dir: skills/lista-cdp
+
+api_calls:
+  - "https://bsc-rpc.publicnode.com"
+
+build:
+  lang: rust
+  binary_name: lista-cdp
+  source_repo: ganlinux/onchainos-plugins
+  source_commit: "0000000000000000000000000000000000000000"
+  source_dir: lista-cdp
+  script: |
+    cargo build --release
