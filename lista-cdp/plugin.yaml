@@ -30,7 +30,7 @@ build:
   lang: rust
   binary_name: lista-cdp
   source_repo: ganlinux/onchainos-plugins
-  source_commit: "0000000000000000000000000000000000000000"
+  source_commit: "560239840cf8fc752174bbf113ee71894d507cb1"
   source_dir: lista-cdp
   script: |
     cargo build --release
