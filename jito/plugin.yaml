@@ -1,0 +1,34 @@
+schema_version: 1
+name: jito
+version: "0.1.0"
+description: "Jito JitoSOL liquid staking and restaking on Solana — stake SOL for JitoSOL with MEV rewards, instant unstake via DEX, and Jito Restaking vault operations"
+license: Apache-2.0
+
+author:
+  name: oker
+  github: oker
+
+category: defi-protocol
+tags:
+  - liquid-staking
+  - restaking
+  - mev
+  - solana
+  - jitosol
+
+components:
+  skill:
+    dir: skills/jito
+
+api_calls:
+  - kobe.mainnet.jito.network
+  - api.mainnet-beta.solana.com
+  - www.jito.network
+
+build:
+  lang: rust
+  binary_name: jito
+  source_repo: oker/plugin-jito
+  source_commit: "0000000000000000000000000000000000000000"
+  script: |
+    cargo build --release
