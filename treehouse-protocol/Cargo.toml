@@ -1,0 +1,18 @@
+[package]
+name = "treehouse-protocol"
+version = "0.1.0"
+edition = "2021"
+description = "Deposit ETH/WETH/stETH/wstETH for tETH yield or AVAX/sAVAX for tAVAX on Treehouse Protocol"
+
+[[bin]]
+name = "treehouse-protocol"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1"
+clap = { version = "4", features = ["derive"] }
+reqwest = { version = "0.12", features = ["json", "rustls-tls"], default-features = false }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["full"] }
+hex = "0.4"
