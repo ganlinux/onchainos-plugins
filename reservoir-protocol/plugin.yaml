@@ -1,0 +1,30 @@
+schema_version: 1
+name: reservoir-protocol
+version: "0.1.0"
+description: "Mint rUSD stablecoin 1:1 from USDC and earn yield via srUSD on Reservoir Protocol"
+license: MIT
+
+author:
+  name: skylavis-sky
+  github: skylavis-sky
+
+category: defi-protocol
+tags:
+  - stablecoin
+  - cdp
+  - yield
+  - ethereum
+
+components:
+  skill:
+    dir: skills/reservoir-protocol
+
+api_calls:
+  - "https://eth.llamarpc.com"
+
+build:
+  lang: rust
+  binary_name: reservoir-protocol
+  source_repo: skylavis-sky/onchainos-plugins
+  source_commit: "0000000000000000000000000000000000000000"
+  source_dir: reservoir-protocol
