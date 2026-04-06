@@ -69,19 +69,28 @@ pub async fn run(args: RequestWithdrawalArgs) -> anyhow::Result<()> {
         false,
     )
     .await?;
+    if approve_result["ok"].as_bool() != Some(true) {
+        anyhow::bail!("approve failed: {}", approve_result["error"].as_str().unwrap_or("unknown error"));
+    }
     let approve_tx = onchainos::extract_tx_hash(&approve_result);
+    tokio::time::sleep(tokio::time::Duration::from_secs(15)).await;
 
     // Step 2: createWithdrawRequest(amount)
     let withdraw_calldata = build_create_withdraw_request_calldata(args.amt);
-    let withdraw_result = onchainos::wallet_contract_call(
+    let withdraw_result = onchainos::wallet_contract_call_force(
         ETHEREUM_CHAIN_ID,
         SWEXIT_PROXY,
         &withdraw_calldata,
         Some(from_addr),
         None,
+        true,
+        Some(200_000),
         false,
     )
     .await?;
+    if withdraw_result["ok"].as_bool() != Some(true) {
+        anyhow::bail!("request-withdrawal failed: {}", withdraw_result["error"].as_str().unwrap_or("unknown error"));
+    }
     let withdraw_tx = onchainos::extract_tx_hash(&withdraw_result);
 
     print_json(&json!({
@@ -94,8 +103,6 @@ pub async fn run(args: RequestWithdrawalArgs) -> anyhow::Result<()> {
         "approve_txHash": approve_tx,
         "withdraw_request_txHash": withdraw_tx,
         "note": "Withdrawal NFT (swEXIT) created. Check status with 'positions' command. Finalize after 1-12 days with 'finalize-withdrawal --token-id <id>'.",
-        "approve_raw": approve_result,
-        "withdraw_raw": withdraw_result
     }));
     Ok(())
 }

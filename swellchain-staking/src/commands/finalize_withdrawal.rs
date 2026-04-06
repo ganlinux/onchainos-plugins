@@ -56,15 +56,20 @@ pub async fn run(args: FinalizeWithdrawalArgs) -> anyhow::Result<()> {
         );
     }
 
-    let result = onchainos::wallet_contract_call(
+    let result = onchainos::wallet_contract_call_force(
         ETHEREUM_CHAIN_ID,
         SWEXIT_PROXY,
         &calldata,
         Some(from_addr),
         None,
+        true,
+        Some(200_000),
         false,
     )
     .await?;
+    if result["ok"].as_bool() != Some(true) {
+        anyhow::bail!("finalize-withdrawal failed: {}", result["error"].as_str().unwrap_or("unknown error"));
+    }
     let tx_hash = onchainos::extract_tx_hash(&result);
 
     print_json(&json!({
@@ -74,7 +79,6 @@ pub async fn run(args: FinalizeWithdrawalArgs) -> anyhow::Result<()> {
         "token_id": args.token_id.to_string(),
         "processed_rate": processed_rate.to_string(),
         "txHash": tx_hash,
-        "raw": result
     }));
     Ok(())
 }

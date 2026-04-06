@@ -64,19 +64,28 @@ pub async fn run(args: EarnDepositArgs) -> anyhow::Result<()> {
         false,
     )
     .await?;
+    if approve_result["ok"].as_bool() != Some(true) {
+        anyhow::bail!("approve failed: {}", approve_result["error"].as_str().unwrap_or("unknown error"));
+    }
     let approve_tx = onchainos::extract_tx_hash(&approve_result);
+    tokio::time::sleep(tokio::time::Duration::from_secs(15)).await;
 
     // Step 2: deposit(token, amount, receiver)
     let deposit_calldata = build_deposit_calldata(token_addr, args.amt, from_addr);
-    let deposit_result = onchainos::wallet_contract_call(
+    let deposit_result = onchainos::wallet_contract_call_force(
         ETHEREUM_CHAIN_ID,
         SIMPLE_STAKING_ERC20,
         &deposit_calldata,
         Some(from_addr),
         None,
+        true,
+        Some(200_000),
         false,
     )
     .await?;
+    if deposit_result["ok"].as_bool() != Some(true) {
+        anyhow::bail!("earn-deposit failed: {}", deposit_result["error"].as_str().unwrap_or("unknown error"));
+    }
     let deposit_tx = onchainos::extract_tx_hash(&deposit_result);
 
     print_json(&json!({
@@ -88,8 +97,6 @@ pub async fn run(args: EarnDepositArgs) -> anyhow::Result<()> {
         "amt_wei": args.amt.to_string(),
         "approve_txHash": approve_tx,
         "deposit_txHash": deposit_tx,
-        "approve_raw": approve_result,
-        "deposit_raw": deposit_result
     }));
     Ok(())
 }

@@ -73,6 +73,9 @@ async fn deposit_ethereum(
             )
             .await?;
 
+            if result["ok"].as_bool() != Some(true) {
+                anyhow::bail!("depositETH failed: {}", result["error"].as_str().unwrap_or("unknown error"));
+            }
             let tx_hash = onchainos::extract_tx_hash(&result);
             println!(
                 "{}",
@@ -137,8 +140,12 @@ async fn deposit_ethereum(
                 false,
             )
             .await?;
+            if approve_result["ok"].as_bool() != Some(true) {
+                anyhow::bail!("approve failed: {}", approve_result["error"].as_str().unwrap_or("unknown error"));
+            }
             let approve_tx = onchainos::extract_tx_hash(&approve_result);
             eprintln!("  approve tx: {}", approve_tx);
+            tokio::time::sleep(std::time::Duration::from_secs(3)).await;
 
             // Step 2: Deposit
             eprintln!("Step 2/2: Calling deposit({}, {}) on tETH Router...", token, amount);
@@ -152,6 +159,9 @@ async fn deposit_ethereum(
                 false,
             )
             .await?;
+            if deposit_result["ok"].as_bool() != Some(true) {
+                anyhow::bail!("deposit failed: {}", deposit_result["error"].as_str().unwrap_or("unknown error"));
+            }
             let deposit_tx = onchainos::extract_tx_hash(&deposit_result);
 
             println!(
@@ -226,6 +236,9 @@ async fn deposit_avalanche(
             )
             .await?;
 
+            if result["ok"].as_bool() != Some(true) {
+                anyhow::bail!("depositAVAX failed: {}", result["error"].as_str().unwrap_or("unknown error"));
+            }
             let tx_hash = onchainos::extract_tx_hash(&result);
             println!(
                 "{}",
@@ -289,8 +302,12 @@ async fn deposit_avalanche(
                 false,
             )
             .await?;
+            if approve_result["ok"].as_bool() != Some(true) {
+                anyhow::bail!("approve failed: {}", approve_result["error"].as_str().unwrap_or("unknown error"));
+            }
             let approve_tx = onchainos::extract_tx_hash(&approve_result);
             eprintln!("  approve tx: {}", approve_tx);
+            tokio::time::sleep(std::time::Duration::from_secs(3)).await;
 
             // Step 2: Deposit
             eprintln!("Step 2/2: Calling deposit(sAVAX, {}) on tAVAX Router...", amount);
@@ -304,6 +321,9 @@ async fn deposit_avalanche(
                 false,
             )
             .await?;
+            if deposit_result["ok"].as_bool() != Some(true) {
+                anyhow::bail!("deposit_savax failed: {}", deposit_result["error"].as_str().unwrap_or("unknown error"));
+            }
             let deposit_tx = onchainos::extract_tx_hash(&deposit_result);
 
             println!(

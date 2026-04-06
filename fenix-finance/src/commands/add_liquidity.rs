@@ -100,6 +100,9 @@ pub async fn execute(args: &AddLiquidityArgs, dry_run: bool, chain_id: u64) -> a
         let r0 = onchainos::erc20_approve(chain_id, &token0_addr, NFPM, u128::MAX, Some(&wallet), false)
             .await
             .context("approve token0")?;
+        if r0["ok"].as_bool() != Some(true) {
+            anyhow::bail!("approve token0 failed: {}", r0["error"].as_str().unwrap_or("unknown error"));
+        }
         eprintln!("Approve token0 tx: {}", onchainos::extract_tx_hash(&r0));
         tokio::time::sleep(std::time::Duration::from_secs(5)).await;
     }
@@ -111,6 +114,9 @@ pub async fn execute(args: &AddLiquidityArgs, dry_run: bool, chain_id: u64) -> a
         let r1 = onchainos::erc20_approve(chain_id, &token1_addr, NFPM, u128::MAX, Some(&wallet), false)
             .await
             .context("approve token1")?;
+        if r1["ok"].as_bool() != Some(true) {
+            anyhow::bail!("approve token1 failed: {}", r1["error"].as_str().unwrap_or("unknown error"));
+        }
         eprintln!("Approve token1 tx: {}", onchainos::extract_tx_hash(&r1));
         tokio::time::sleep(std::time::Duration::from_secs(5)).await;
     }
@@ -129,17 +135,9 @@ pub async fn execute(args: &AddLiquidityArgs, dry_run: bool, chain_id: u64) -> a
     let t1_clean = token1_addr.trim_start_matches("0x");
     let recipient_clean = wallet.trim_start_matches("0x");
 
-    // int24 tick values need to be encoded as 32-byte two's complement
-    let tick_lower_enc = if args.tick_lower < 0 {
-        format!("{:064x}", (args.tick_lower as i64 as u64) as u128 | (u128::MAX << 64))
-    } else {
-        format!("{:064x}", args.tick_lower as u128)
-    };
-    let tick_upper_enc = if args.tick_upper < 0 {
-        format!("{:064x}", (args.tick_upper as i64 as u64) as u128 | (u128::MAX << 64))
-    } else {
-        format!("{:064x}", args.tick_upper as u128)
-    };
+    // int24 tick values encoded as 32-byte ABI (int256, two's complement)
+    let tick_lower_enc = encode_int256(args.tick_lower as i128);
+    let tick_upper_enc = encode_int256(args.tick_upper as i128);
 
     let calldata = format!(
         "0x9cc1a283{:0>64}{:0>64}{}{}{:064x}{:064x}{:064x}{:064x}{:0>64}{:064x}",
@@ -155,18 +153,22 @@ pub async fn execute(args: &AddLiquidityArgs, dry_run: bool, chain_id: u64) -> a
         deadline
     );
 
-    let result = onchainos::wallet_contract_call(
+    let result = onchainos::wallet_contract_call_gas(
         chain_id,
         NFPM,
         &calldata,
         Some(&wallet),
         None,
         true,
+        Some(600_000),
         false,
     )
     .await
     .context("wallet contract-call mint")?;
 
+    if result["ok"].as_bool() != Some(true) {
+        anyhow::bail!("mint failed: {}", result["error"].as_str().unwrap_or("unknown error"));
+    }
     let tx_hash = onchainos::extract_tx_hash(&result);
     println!(
         "{}",
@@ -183,4 +185,16 @@ pub async fn execute(args: &AddLiquidityArgs, dry_run: bool, chain_id: u64) -> a
         })
     );
     Ok(())
+}
+
+/// Encode i128 as ABI int256 (32 bytes, two's complement).
+fn encode_int256(val: i128) -> String {
+    // Two's complement: negative values have all upper bits set.
+    let unsigned = val as u128; // wraps correctly for negative values
+    if val >= 0 {
+        format!("{:064x}", unsigned)
+    } else {
+        // Upper 128 bits (as int256) are all 0xFF
+        format!("ffffffffffffffffffffffffffffffff{:032x}", unsigned)
+    }
 }

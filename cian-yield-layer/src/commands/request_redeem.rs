@@ -9,7 +9,7 @@ use crate::config::{
     CHAIN_ID, encode_address, encode_uint256, format_18, resolve_vault, resolve_token,
     WITHDRAWAL_WAIT_DAYS,
 };
-use crate::onchainos::{resolve_wallet, wallet_contract_call, extract_tx_hash};
+use crate::onchainos::{resolve_wallet, wallet_contract_call_force, extract_tx_hash};
 use crate::rpc::{balance_of, preview_redeem};
 
 pub async fn run(
@@ -98,14 +98,18 @@ pub async fn run(
     println!("Assets arrive in ~{} days automatically.", WITHDRAWAL_WAIT_DAYS);
     println!();
 
-    let result = wallet_contract_call(
+    let result = wallet_contract_call_force(
         CHAIN_ID,
         vault.address,
         &calldata,
         Some(&wallet),
         None,
+        Some(300_000),
         false,
     ).await?;
+    if result["ok"].as_bool() != Some(true) {
+        anyhow::bail!("request-redeem failed: {}", result["error"].as_str().unwrap_or("unknown error"));
+    }
 
     let tx_hash = extract_tx_hash(&result);
     println!("Request Redeem TX: {}", tx_hash);

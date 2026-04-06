@@ -4,6 +4,7 @@ pub const CHAIN_ID: u64 = 1;
 
 /// Primary Ethereum RPC — mevblocker (no MEV, reliable)
 pub const ETH_FALLBACK_RPCS: &[&str] = &[
+    "https://ethereum.publicnode.com",
     "https://rpc.mevblocker.io",
     "https://eth.llamarpc.com",
 ];

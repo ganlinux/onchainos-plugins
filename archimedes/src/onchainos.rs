@@ -73,6 +73,19 @@ pub async fn wallet_contract_call(
     amt: Option<u64>,
     dry_run: bool,
 ) -> anyhow::Result<Value> {
+    wallet_contract_call_force(chain_id, to, input_data, from, amt, false, None, dry_run).await
+}
+
+pub async fn wallet_contract_call_force(
+    chain_id: u64,
+    to: &str,
+    input_data: &str,
+    from: Option<&str>,
+    amt: Option<u64>,
+    force: bool,
+    gas_limit: Option<u64>,
+    dry_run: bool,
+) -> anyhow::Result<Value> {
     if dry_run {
         return Ok(serde_json::json!({
             "ok": true,
@@ -104,6 +117,14 @@ pub async fn wallet_contract_call(
     if let Some(f) = from {
         from_str = f.to_string();
         args.extend_from_slice(&["--from", &from_str]);
+    }
+    if force {
+        args.push("--force");
+    }
+    let gas_str;
+    if let Some(g) = gas_limit {
+        gas_str = g.to_string();
+        args.extend_from_slice(&["--gas-limit", &gas_str]);
     }
 
     let output = Command::new("onchainos").args(&args).output()?;

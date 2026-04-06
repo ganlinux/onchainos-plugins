@@ -6,7 +6,7 @@ use crate::config::{
     CHAIN_ID, ZERO_ADDRESS, encode_address, encode_uint256,
     resolve_vault, resolve_token, format_units,
 };
-use crate::onchainos::{resolve_wallet, erc20_approve, wallet_contract_call, extract_tx_hash};
+use crate::onchainos::{resolve_wallet, erc20_approve, wallet_contract_call_force, extract_tx_hash};
 use crate::rpc::{allowance, preview_deposit};
 
 pub async fn run(
@@ -82,6 +82,9 @@ pub async fn run(
                 Some(&wallet),
                 false,
             ).await?;
+            if approve_result["ok"].as_bool() != Some(true) {
+                anyhow::bail!("approve failed: {}", approve_result["error"].as_str().unwrap_or("unknown error"));
+            }
             let approve_hash = extract_tx_hash(&approve_result);
             println!("  Approve TX: {}", approve_hash);
             println!("  Etherscan: https://etherscan.io/tx/{}", approve_hash);
@@ -122,15 +125,19 @@ pub async fn run(
         None
     };
 
-    let deposit_result = wallet_contract_call(
+    let deposit_result = wallet_contract_call_force(
         CHAIN_ID,
         vault.address,
         &calldata,
         Some(&wallet),
         amt_wei,
+        Some(600_000),
         false,
     ).await?;
 
+    if deposit_result["ok"].as_bool() != Some(true) {
+        anyhow::bail!("deposit failed: {}", deposit_result["error"].as_str().unwrap_or("unknown error"));
+    }
     let tx_hash = extract_tx_hash(&deposit_result);
     println!("Deposit TX: {}", tx_hash);
     println!("Etherscan:  https://etherscan.io/tx/{}", tx_hash);

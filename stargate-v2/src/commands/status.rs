@@ -146,7 +146,13 @@ async fn query_by_tx_hash(
     // Trim potential whitespace/BOM
     let trimmed = body_text.trim_start_matches('\u{FEFF}').trim();
     if trimmed.is_empty() {
-        println!("(LayerZero Scan API returned whitespace-only response.)");
+        println!("(LayerZero Scan API returned empty response. Transaction may not yet be indexed.)");
+        return Ok(());
+    }
+
+    // Check for HTML error page (e.g., rate limit or maintenance)
+    if trimmed.starts_with("<!") || trimmed.starts_with("<html") || trimmed.starts_with("<HTML") {
+        println!("(LayerZero Scan API returned an error page. The API may be temporarily unavailable or the tx is too new to be indexed. Try again in a minute.)");
         return Ok(());
     }
 

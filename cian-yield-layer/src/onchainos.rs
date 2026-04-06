@@ -63,6 +63,32 @@ pub async fn wallet_contract_call(
     amt: Option<u64>,
     dry_run: bool,
 ) -> anyhow::Result<Value> {
+    wallet_contract_call_inner(chain_id, to, input_data, from, amt, None, false, dry_run).await
+}
+
+/// Submit an EVM transaction with optional gas limit and force flag.
+pub async fn wallet_contract_call_force(
+    chain_id: u64,
+    to: &str,
+    input_data: &str,
+    from: Option<&str>,
+    amt: Option<u64>,
+    gas_limit: Option<u64>,
+    dry_run: bool,
+) -> anyhow::Result<Value> {
+    wallet_contract_call_inner(chain_id, to, input_data, from, amt, gas_limit, true, dry_run).await
+}
+
+async fn wallet_contract_call_inner(
+    chain_id: u64,
+    to: &str,
+    input_data: &str,
+    from: Option<&str>,
+    amt: Option<u64>,
+    gas_limit: Option<u64>,
+    force: bool,
+    dry_run: bool,
+) -> anyhow::Result<Value> {
     if dry_run {
         return Ok(serde_json::json!({
             "ok": true,
@@ -88,6 +114,14 @@ pub async fn wallet_contract_call(
     if let Some(f) = from {
         from_str = f.to_string();
         args.extend_from_slice(&["--from", &from_str]);
+    }
+    let gas_str;
+    if let Some(g) = gas_limit {
+        gas_str = g.to_string();
+        args.extend_from_slice(&["--gas-limit", &gas_str]);
+    }
+    if force {
+        args.push("--force");
     }
 
     let output = Command::new("onchainos").args(&args).output()?;

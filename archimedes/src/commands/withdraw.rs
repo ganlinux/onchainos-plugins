@@ -117,15 +117,20 @@ pub async fn run(args: WithdrawArgs) -> anyhow::Result<()> {
         crate::rpc::pad_u128(minimum_receive),
     );
 
-    let result = onchainos::wallet_contract_call(
+    let result = onchainos::wallet_contract_call_force(
         CHAIN_ID,
         &args.vault,
         &calldata,
         Some(&wallet),
         None,
+        true,
+        Some(600_000),
         args.dry_run,
     )
     .await?;
+    if !args.dry_run && result["ok"].as_bool() != Some(true) {
+        anyhow::bail!("withdraw failed: {}", result["error"].as_str().unwrap_or("unknown error"));
+    }
     let tx_hash = onchainos::extract_tx_hash(&result);
 
     let output = json!({

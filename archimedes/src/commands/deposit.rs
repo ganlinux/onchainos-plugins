@@ -105,6 +105,9 @@ pub async fn run(args: DepositArgs) -> anyhow::Result<()> {
         args.dry_run,
     )
     .await?;
+    if !args.dry_run && approve_result["ok"].as_bool() != Some(true) {
+        anyhow::bail!("approve failed: {}", approve_result["error"].as_str().unwrap_or("unknown error"));
+    }
     let approve_tx = onchainos::extract_tx_hash(&approve_result);
     eprintln!("  Approve tx: {}", approve_tx);
 
@@ -123,15 +126,20 @@ pub async fn run(args: DepositArgs) -> anyhow::Result<()> {
     );
 
     eprintln!("\n[2/2] Depositing into vault...");
-    let deposit_result = onchainos::wallet_contract_call(
+    let deposit_result = onchainos::wallet_contract_call_force(
         CHAIN_ID,
         &args.vault,
         &calldata,
         Some(&wallet),
         None,
+        true,
+        Some(600_000),
         args.dry_run,
     )
     .await?;
+    if !args.dry_run && deposit_result["ok"].as_bool() != Some(true) {
+        anyhow::bail!("deposit failed: {}", deposit_result["error"].as_str().unwrap_or("unknown error"));
+    }
     let deposit_tx = onchainos::extract_tx_hash(&deposit_result);
 
     let output = json!({

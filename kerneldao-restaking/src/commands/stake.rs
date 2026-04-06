@@ -50,13 +50,16 @@ pub async fn run(asset: &str, amount_str: &str, referral: &str, dry_run: bool) -
     )
     .await?;
 
-    let approve_hash = extract_tx_hash(&approve_result);
     if dry_run {
         println!("[dry-run] approve calldata: {}", approve_result["calldata"].as_str().unwrap_or(""));
     } else {
+        if approve_result["ok"].as_bool() != Some(true) {
+            anyhow::bail!("approve failed: {}", approve_result["error"].as_str().unwrap_or("unknown error"));
+        }
+        let approve_hash = extract_tx_hash(&approve_result);
         println!("Approve txHash: {}", approve_hash);
         println!("Waiting for approve confirmation...");
-        // In production the user would wait; we proceed immediately.
+        tokio::time::sleep(tokio::time::Duration::from_secs(3)).await;
     }
 
     // Step 2: Stake
@@ -86,12 +89,16 @@ pub async fn run(asset: &str, amount_str: &str, referral: &str, dry_run: bool) -
     )
     .await?;
 
-    let stake_hash = extract_tx_hash(&stake_result);
     if dry_run {
+        let stake_hash = extract_tx_hash(&stake_result);
         println!("[dry-run] stake calldata: {}", calldata);
         println!("[dry-run] txHash (simulated): {}", stake_hash);
         println!("[dry-run] No transactions were broadcast.");
     } else {
+        if stake_result["ok"].as_bool() != Some(true) {
+            anyhow::bail!("stake failed: {}", stake_result["error"].as_str().unwrap_or("unknown error"));
+        }
+        let stake_hash = extract_tx_hash(&stake_result);
         println!("Stake txHash: {}", stake_hash);
         println!();
         println!("Successfully staked {} {} on KernelDAO!", format_amount(amount_raw, decimals), sym);
