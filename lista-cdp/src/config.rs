@@ -20,6 +20,9 @@ pub const SLISBNB: &str = "0xB0b84D294e0C75A6abe60171b70edEb2EFd14A1B";
 /// lisUSD token (Lista stablecoin), 18 decimals
 pub const LISUSD: &str = "0x0782b6d8c4551B9760e74c0545a9bCD90bdc41E5";
 
+/// slisBNBProvider — HelioProvider contract; slisBNB collateral must go through this, not Interaction directly
+pub const SLISBNB_PROVIDER: &str = "0xfD31e1C5e5571f8E7FE318f80888C1e6da97819b";
+
 /// Format a uint256 value (18 decimals) to human-readable string with 6 decimal places.
 pub fn format_18(raw: u128) -> String {
     let divisor = 1_000_000_000_000_000_000u128;

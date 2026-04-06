@@ -53,13 +53,18 @@ pub async fn run(amount_str: &str, referral: &str, dry_run: bool) -> Result<()> 
     )
     .await?;
 
-    let tx_hash = extract_tx_hash(&result);
     if dry_run {
+        let tx_hash = extract_tx_hash(&result);
         println!("[dry-run] stakeNative calldata: {}", calldata);
         println!("[dry-run] msg.value: {} wei", amount_raw);
         println!("[dry-run] txHash (simulated): {}", tx_hash);
         println!("[dry-run] No transactions were broadcast.");
     } else {
+        if result["ok"].as_bool() != Some(true) {
+            let err = result["error"].as_str().unwrap_or("unknown error");
+            anyhow::bail!("stakeNative failed: {}", err);
+        }
+        let tx_hash = extract_tx_hash(&result);
         println!("txHash: {}", tx_hash);
         println!();
         println!("Successfully staked {} BNB on KernelDAO!", format_amount(amount_raw, BNB_DECIMALS));

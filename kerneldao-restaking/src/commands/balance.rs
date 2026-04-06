@@ -40,9 +40,25 @@ pub async fn run(asset: Option<&str>) -> Result<()> {
     println!("Chain: BSC ({})", BSC_CHAIN_ID);
     println!();
 
-    if let Some(addr) = asset {
+    if let Some(input) = asset {
+        // Resolve symbol to address if needed
+        let addr = if input.starts_with("0x") || input.starts_with("0X") {
+            input.to_string()
+        } else {
+            // Look up by symbol (case-insensitive)
+            let upper = input.to_uppercase();
+            KNOWN_ASSETS
+                .iter()
+                .find(|(sym, _, _)| sym.to_uppercase() == upper)
+                .map(|(_, a, _)| a.to_string())
+                .ok_or_else(|| anyhow::anyhow!(
+                    "Unknown asset symbol '{}'. Use a contract address (0x...) or one of: {}",
+                    input,
+                    KNOWN_ASSETS.iter().map(|(s, _, _)| *s).collect::<Vec<_>>().join(", ")
+                ))?
+        };
         // Single asset query
-        let (raw, sym, dec) = query_balance(addr, &owner).await?;
+        let (raw, sym, dec) = query_balance(&addr, &owner).await?;
         let human = format_amount(raw, dec);
         println!("Asset:  {} ({})", sym, addr);
         println!("Staked: {} {} ({} wei)", human, sym, raw);
