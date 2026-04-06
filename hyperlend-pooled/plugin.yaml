@@ -30,7 +30,7 @@ build:
   lang: rust
   binary_name: hyperlend-pooled
   source_repo: ganlinux/onchainos-plugins
-  source_commit: "0000000000000000000000000000000000000000"
+  source_commit: "b5dd3d55a6a318c50e88a3586b868efa93ecc3f4"
   source_dir: hyperlend-pooled
   script: |
     cargo build --release
