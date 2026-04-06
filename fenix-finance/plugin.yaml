@@ -23,7 +23,7 @@ build:
   lang: rust
   binary_name: fenix-finance
   source_repo: skylavis-sky/onchainos-plugins
-  source_commit: "0000000000000000000000000000000000000000"
+  source_commit: "ee5ba7ba56ff76ac7c9d4f4b5f68df8bb6b2a0d2"
   source_dir: fenix-finance
 
 api_calls:
