@@ -1,0 +1,36 @@
+schema_version: 1
+name: hyperlend-pooled
+version: "0.1.0"
+description: "HyperLend Core Pools — Aave V3 fork on Hyperliquid EVM: supply, borrow, repay, withdraw"
+author:
+  name: ganlinux
+  github: ganlinux
+
+category: defi-protocol
+tags:
+  - lending
+  - borrowing
+  - hyperliquid
+  - evm
+  - defi
+  - yield
+  - aave-v3-fork
+
+license: MIT
+
+components:
+  skill:
+    dir: skills/hyperlend-pooled
+
+api_calls:
+  - "https://api.hyperlend.finance"
+  - "https://rpc.hyperlend.finance"
+
+build:
+  lang: rust
+  binary_name: hyperlend-pooled
+  source_repo: ganlinux/onchainos-plugins
+  source_commit: "0000000000000000000000000000000000000000"
+  source_dir: hyperlend-pooled
+  script: |
+    cargo build --release
