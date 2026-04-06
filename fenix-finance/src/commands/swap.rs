@@ -53,6 +53,8 @@ pub async fn execute(args: &SwapArgs, dry_run: bool, chain_id: u64) -> anyhow::R
     let token_in_addr = config::resolve_token_address(&args.token_in);
     let token_out_addr = config::resolve_token_address(&args.token_out);
     let decimals_in = config::resolve_token_decimals(&args.token_in);
+    // Native ETH flag: when user passes "ETH", we send ETH as msg.value rather than pulling ERC-20
+    let is_native_eth = args.token_in.to_uppercase() == "ETH";
 
     let amount_f: f64 = args.amount.parse().context("invalid amount")?;
     let amount_in = (amount_f * 10f64.powi(decimals_in as i32)) as u128;
@@ -86,26 +88,31 @@ pub async fn execute(args: &SwapArgs, dry_run: bool, chain_id: u64) -> anyhow::R
         anyhow::bail!("Cannot resolve wallet address. Pass --from or ensure onchainos is logged in.");
     }
 
-    // Step 4: Check and approve if needed
-    let allowance = rpc::erc20_allowance(&token_in_addr, &wallet, SWAP_ROUTER)
-        .await
-        .context("allowance check")?;
-    if allowance < amount_in {
-        eprintln!("Approving {} for SwapRouter...", args.token_in);
-        let approve_result = onchainos::erc20_approve(
-            chain_id,
-            &token_in_addr,
-            SWAP_ROUTER,
-            u128::MAX,
-            Some(&wallet),
-            false,
-        )
-        .await
-        .context("erc20_approve")?;
-        let approve_hash = onchainos::extract_tx_hash(&approve_result);
-        eprintln!("Approve tx: {}", approve_hash);
-        // Wait 3 seconds after approve
-        tokio::time::sleep(std::time::Duration::from_secs(3)).await;
+    // Step 4: Check and approve if needed (skip for native ETH — cannot approve ETH as ERC-20)
+    if !is_native_eth {
+        let allowance = rpc::erc20_allowance(&token_in_addr, &wallet, SWAP_ROUTER)
+            .await
+            .context("allowance check")?;
+        if allowance < amount_in {
+            eprintln!("Approving {} for SwapRouter...", args.token_in);
+            let approve_result = onchainos::erc20_approve(
+                chain_id,
+                &token_in_addr,
+                SWAP_ROUTER,
+                u128::MAX,
+                Some(&wallet),
+                false,
+            )
+            .await
+            .context("erc20_approve")?;
+            if approve_result["ok"].as_bool() != Some(true) {
+                anyhow::bail!("approve failed: {}", approve_result["error"].as_str().unwrap_or("unknown"));
+            }
+            let approve_hash = onchainos::extract_tx_hash(&approve_result);
+            eprintln!("Approve tx: {}", approve_hash);
+            // Wait 3 seconds after approve
+            tokio::time::sleep(std::time::Duration::from_secs(3)).await;
+        }
     }
 
     // Step 5: Build exactInputSingle calldata
@@ -133,19 +140,24 @@ pub async fn execute(args: &SwapArgs, dry_run: bool, chain_id: u64) -> anyhow::R
         0u128 // limitSqrtPrice = 0
     );
 
-    // Step 6: Execute swap (requires --force for DEX operations)
+    // Step 6: Execute swap
+    // For native ETH: pass amount_in as msg.value; for ERC-20: pass None (tokens pulled via allowance)
+    let eth_value: Option<u64> = if is_native_eth { Some(amount_in as u64) } else { None };
     let result = onchainos::wallet_contract_call(
         chain_id,
         SWAP_ROUTER,
         &calldata,
         Some(&wallet),
-        None,
+        eth_value,
         true, // --force required for DEX swap
         false,
     )
     .await
     .context("wallet contract-call swap")?;
 
+    if result["ok"].as_bool() != Some(true) {
+        anyhow::bail!("swap failed: {}", result["error"].as_str().unwrap_or("unknown error"));
+    }
     let tx_hash = onchainos::extract_tx_hash(&result);
     let decimals_out = config::resolve_token_decimals(&args.token_out);
     let amount_out_human = amount_out as f64 / 10f64.powi(decimals_out as i32);
