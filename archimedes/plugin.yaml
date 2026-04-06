@@ -1,0 +1,33 @@
+schema_version: 1
+name: archimedes
+version: "0.1.0"
+description: "Deposit into Archimedes V2 protected yield vaults (ERC4626) and query positions on Ethereum mainnet"
+author:
+  name: "ganlinux"
+  github: "ganlinux"
+category: defi-protocol
+tags:
+  - yield
+  - vault
+  - erc4626
+  - convex
+  - aura
+  - protected-pools
+  - ethereum
+license: MIT
+
+components:
+  skill:
+    dir: skills/archimedes
+
+build:
+  lang: rust
+  binary_name: archimedes
+  source_repo: ganlinux/onchainos-plugins
+  source_commit: "0000000000000000000000000000000000000000"
+  source_dir: archimedes
+
+api_calls:
+  - "https://rpc.mevblocker.io"
+  - "https://mainnet.gateway.tenderly.co"
+  - "https://ethereum-rpc.publicnode.com"
