@@ -126,14 +126,12 @@ pub async fn run(args: DepositArgs) -> anyhow::Result<()> {
     );
 
     eprintln!("\n[2/2] Depositing into vault...");
-    let deposit_result = onchainos::wallet_contract_call_force(
+    let deposit_result = onchainos::wallet_contract_call(
         CHAIN_ID,
         &args.vault,
         &calldata,
         Some(&wallet),
         None,
-        true,
-        Some(600_000),
         args.dry_run,
     )
     .await?;
